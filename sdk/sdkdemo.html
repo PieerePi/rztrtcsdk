@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="./rztrtcsdk.min.js"></script>
+    <title>RZTRtcSDK Demo - 本机 8503</title>
+    <style>
+        video {
+            background: #222;
+            width: 480px;
+            height: 360px;
+            margin: 0 0 20px 0;
+            vertical-align: top;
+        }
+
+        video#localVideoTag {
+            margin: 0 20px 20px 0;
+            /* 本地镜像 */
+            /* transform: rotateY(180deg); */
+        }
+    </style>
+</head>
+
+<body>
+    <div align=center>
+    <video id=localVideoTag autoplay></video>
+    <video id=remoteTag autoplay></video><br>
+    <input class="phone">
+    <button class="btnCall">语音呼叫</button>
+    <button class="btnVideoCall">视频呼叫</button>
+    <button class="btnAnswer">接听</button>
+    <button class="btnHangup">挂断</button>
+    <button class="btnSwitchVideo">关闭摄像头</button>
+    <button class="btnSwitchAudio">静音</button>
+    <button class="btnHold">保持</button>
+    <button id=shareDesktop>进入桌面共享模式</button><br>
+    <p id=callInfo>呼叫提示信息</p>
+    <button class="btnAnswerSecond">接听第二路，挂断第一路</button>
+    <button class="btnHangupSecond">挂断第二路</button><br>
+    <p id=callInfo2>第二路呼叫相关信息</p>
+    <p id=callInfo3 style="color:red">漏接呼叫及错误相关信息</p>
+    </div>
+    <script>
+        let callShareDesktop = false;
+        const sdk = new RZTRtcSDK.RTCSDK('8503', '123456', '192.168.100.205', 7443, '测试8503');
+        sdk.enableDebug();
+        sdk.setParams({
+            // 远端语音或视频标签，必须
+            remoteTag: remoteTag,
+            // 被叫振铃音，必须
+            ringRingUrl: 'ringtone.wav',
+            // 重要！！！能缩短听到看到通话对端的时间，只适用于RZT并需要设置为true
+            // 如不是RZT服务器，请置为false或不设置该值
+            rztpcc: true,
+            // 重要！！！设置session timer的数值，RZT需要设置为240
+            sessionExpires: 240,
+            // 本地视频窗口标签，可选
+            localVideoTag: localVideoTag,
+            // 控制本地发送的视频的宽、高和帧率，可选
+            width: 640, height: 360, frameRate: 30,
+            // 控制本地发送的视频的码率，可选
+            bandWidth: 800,
+            // 分享桌面时显示分享音频选项，分享桌面默认屏蔽了这个选项
+            // displayShareAudioOption: true,
+            // 调用call或answer时共享桌面参数为true，但用户却最终取消了桌面分享，这时候仍然会呼出或接听（使用摄像头作为视频源）
+            // 下面这个参数置为true后，会改变这种默认行为，会取消呼出或挂断来电
+            // cancelCallWhenShareCanceled: true,
+            // 自定义SIP USER AGENT
+            // userAgent: 'xxx',
+            // 自定义STUN/TURN设置, RTCConfiguration，https://www.w3.org/TR/webrtc/#dom-rtcconfiguration
+            // 这个参数设置后，前面的rztpcc将失效
+            // pcc: {
+            //     iceServers : [ {
+            //     urls       : [ 'turn:xxx.xxx.xxx.xxx' ],
+            //     username   : 'uuu_your_username_uuu',
+            //     credential : 'ppp_your_password_ppp'
+            //     } ],
+            //     iceTransportPolicy : 'relay',
+            //     rtcpMuxPolicy      : 'require'
+            // },
+            // 下面这两个参数，对于FreeSWITCH，可不用设置，因为回铃音在183 early media中提供了
+            // 主叫回铃音
+            // ringBackUrl: 'ringback.wav',
+            // 即使主叫收到了183仍然使用自己的主叫回铃音
+            // SC183StillRingBack: true,
+            // 禁用session timer，这个参数设置后，前面的sessionExpires无效
+            // sessionTimer: false,
+        });
+        sdk.eventHandler = function(event, data) {
+            const ci = document.getElementById('callInfo');
+            const ci2 = document.getElementById('callInfo2');
+            const ci3 = document.getElementById('callInfo3');
+            const { remoteUser, remoteUserId, callType, statusCode } = data;
+            const { originator, cause } = data;
+            const { type, reason } = data;
+            // console.log(remoteUser, remoteUserId, callType, statusCode);
+            switch (event) {
+                case 'registered':
+                    // 注册成功处理
+                    break;
+                case 'incomingCall':
+                    ci.textContent = '您有一个来自' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话，请接听！';
+                    break;
+                case 'remoteRingRing':
+                    ci.textContent = (callType === 'video' ? '视频' : '语音') + '呼叫' + remoteUser + '中，对方' + statusCode + '正在振铃。。。';
+                    break;
+                case 'remoteAnswerCall':
+                    ci.textContent = remoteUser + '已接通与您的' + (callType === 'video' ? '视频' : '语音') + '通话。';
+                    break;
+                case 'remoteHangupCall':
+                    ci.textContent = remoteUser + '已挂断与您的' + (callType === 'video' ? '视频' : '语音') + '通话。';
+                    document.querySelector('.btnSwitchVideo').textContent = '关闭摄像头';
+                    document.querySelector('.btnSwitchAudio').textContent = '静音';
+                    document.querySelector('.btnHold').textContent = '保持';
+                    break;
+                case 'localAnswerCall':
+                    ci.textContent = '您已接通与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。';
+                    break;
+                case 'localHangupCall':
+                    ci.textContent = '您已挂断与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。';
+                    document.querySelector('.btnSwitchVideo').textContent = '关闭摄像头';
+                    document.querySelector('.btnSwitchAudio').textContent = '静音';
+                    document.querySelector('.btnHold').textContent = '保持';
+                    break;
+                case 'callEstablishFailed':
+                    ci.textContent = '呼叫建立失败，失败方为：' + originator + '，失败原因为：' + cause + '。';
+                    break;
+                case 'missCall':
+                    ci3.textContent = '您有一个来自' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话，由于线路繁忙已被挂断。';
+                    break;
+                case 'failed':
+                    ci3.textContent = '有错误发生，错误类型：' + type + '，错误原因：' + reason + '。';
+                    if (type == 'accountError') {
+                        ci3.textContent += '账号的用户名或密码错误，请联系管理员！';
+                    } else if (type == 'connectionError') {
+                        ci3.textContent += '连接服务器错误，请联系管理员！';
+                    }
+                    break;
+                case 'secondCall':
+                    ci2.textContent = '您有一个来自' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话，请接听！（第二路）';
+                    break;
+                case 'remoteSecondCallHangup':
+                    ci2.textContent = remoteUser + '已挂断与您的' + (callType === 'video' ? '视频' : '语音') + '通话。（第二路）';
+                    break;
+                case 'localSecondCallHangup':
+                    ci2.textContent = '您已挂断与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。（第二路）';
+                    break;
+                case 'secondCallEstablishFailed':
+                    ci2.textContent = '呼叫建立失败，失败方为：' + originator + '，失败原因为：' + cause + '。（第二路）';
+                    break;
+            }
+        };
+        sdk.start();
+
+        document.querySelector('.btnCall').onclick = () => {
+            if (document.querySelector('.phone').value === '') {
+                const ci = document.getElementById('callInfo');
+                ci.textContent = '请输入被叫号码';
+            } else if (!sdk.inCall() && !sdk.hasSecondCall()) {
+                const ci = document.getElementById('callInfo');
+                ci.textContent = '语音呼叫' + document.querySelector('.phone').value + '中。';
+                sdk.call(document.querySelector('.phone').value, 'audio');
+            } else {
+                const ci = document.getElementById('callInfo');
+                ci.textContent = '语音呼叫操作不允许';
+            }
+        };
+        document.querySelector('.btnVideoCall').onclick = () => {
+            if (document.querySelector('.phone').value === '') {
+                const ci = document.getElementById('callInfo');
+                ci.textContent = '请输入被叫号码';
+            } else if (!sdk.inCall() && !sdk.hasSecondCall()) {
+                const ci = document.getElementById('callInfo');
+                ci.textContent = '视频呼叫' + document.querySelector('.phone').value + '中。';
+                sdk.call(document.querySelector('.phone').value, 'video', callShareDesktop);
+            } else {
+                const ci = document.getElementById('callInfo');
+                ci.textContent = '视频呼叫操作不允许';
+            }
+        };
+        document.querySelector('.btnAnswer').onclick = () => {
+            if (sdk.canAnswer()) {
+                // const ci = document.getElementById('callInfo');
+                // const { remoteUser, remoteUserId, callType } = sdk.getCallInfo();
+                // ci.textContent = '您已接通与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。';
+                sdk.answer(callShareDesktop);
+            } else {
+                const ci = document.getElementById('callInfo');
+                ci.textContent = '接听操作不允许';
+            }
+        };
+        document.querySelector('.btnHangup').onclick = () => {
+            if (sdk.inCall()) {
+                // const ci = document.getElementById('callInfo');
+                // const { remoteUser, remoteUserId, callType } = sdk.getCallInfo();
+                // ci.textContent = '您已挂断与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。';
+                sdk.hangup();
+            } else {
+                const ci = document.getElementById('callInfo');
+                ci.textContent = '挂断操作不允许';
+            }
+        };
+        document.querySelector('.btnSwitchVideo').onclick = () => {
+            newCameraStatus = !sdk.getVideoStatus();
+            if (newCameraStatus)
+                document.querySelector('.btnSwitchVideo').textContent = '关闭摄像头';
+            else
+                document.querySelector('.btnSwitchVideo').textContent = '打开摄像头';
+            sdk.switchVideo();
+        };
+        document.querySelector('.btnSwitchAudio').onclick = () => {
+            newVoiceStatus = !sdk.getAudioStatus();
+            if (newVoiceStatus)
+                document.querySelector('.btnSwitchAudio').textContent = '静音';
+            else
+                document.querySelector('.btnSwitchAudio').textContent = '取消静音';
+            sdk.switchAudio();
+        };
+        document.querySelector('.btnHold').onclick = () => {
+            if (sdk.isOnHold()) {
+                sdk.unhold();
+                document.querySelector('.btnHold').textContent = '保持';
+            } else {
+                sdk.hold();
+                document.querySelector('.btnHold').textContent = '解保持';
+            }
+        };
+        document.querySelector('#shareDesktop').onclick = () => {
+            let shareDesktop = document.getElementById('shareDesktop');
+            if (callShareDesktop) {
+                callShareDesktop = false;
+                shareDesktop.textContent = '进入桌面共享模式';
+            } else {
+                callShareDesktop = true;
+                shareDesktop.textContent = '退出桌面共享模式';
+            }
+        };
+        document.querySelector('.btnAnswerSecond').onclick = () => {
+            if (sdk.hasSecondCall()) {
+                const ci2 = document.getElementById('callInfo2');
+                const { remoteUser, remoteUserId, callType } = sdk.getSecondCallInfo();
+                ci2.textContent = '您已接通与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。（第二路）';
+                sdk.answerSecondCall(callShareDesktop);
+            } else {
+                const ci2 = document.getElementById('callInfo2');
+                ci2.textContent = '接听操作不允许（第二路）';
+            }
+        };
+        document.querySelector('.btnHangupSecond').onclick = () => {
+            if (sdk.hasSecondCall()) {
+                // const ci2 = document.getElementById('callInfo2');
+				// const { remoteUser, remoteUserId, callType } = sdk.getSecondCallInfo();
+                // ci2.textContent = '您已挂断与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。（第二路）';
+                sdk.hangupSecondCall();
+            } else {
+                const ci2 = document.getElementById('callInfo2');
+                ci2.textContent = '挂断操作不允许（第二路）';
+            }
+        };
+        document.body.onload = function () {
+            const url = window.location.href;
+            if (url.indexOf('http') == -1) {
+                alert('请不要在本地运行，因为ICE无法收集到地址；请在localhost或WEB服务器上运行此页面。');
+                return;
+            }
+        };
+        document.body.onunload = function () {
+            sdk.stop();
+        };
+    </script>
+</body>
+
+</html>
