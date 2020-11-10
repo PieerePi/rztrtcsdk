@@ -3,7 +3,7 @@
   "gulpname": "rztrtcsdk",
   "title": "RZTRtcSDK",
   "description": "RZT RTC SDK",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "homepage": "https://github.com/PieerePi",
   "author": "Pieere Pi <pihuibin@hotmail.com> (https://github.com/PieerePi)",
   "types": "sdk/RTCSDK.d.ts",
@@ -16,7 +16,7 @@
     "browser",
     "library"
   ],
-  "files" : [
+  "files": [
     "sdk/ringback.wav",
     "sdk/ringtone.wav",
     "sdk/rztrtcsdk.min.js",
