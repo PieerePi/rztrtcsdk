@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+Version 1.2.3 (released in 2020-11-19)
+---------------------------------------
+
+* 新的debug库使用了console.debug，这在Chrome中需要点击user messages后才能看到调试日志，现回退并固定为4.1.1版本
+
 Version 1.2.2 (released in 2020-11-10)
 ---------------------------------------
 
