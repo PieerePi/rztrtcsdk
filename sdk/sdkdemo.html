@@ -33,10 +33,11 @@
     <button class="btnVideoCall">视频呼叫</button>
     <button class="btnAnswer">接听</button>
     <button class="btnHangup">挂断</button>
-    <button class="btnSwitchVideo">关闭摄像头</button>
     <button class="btnSwitchAudio">静音</button>
     <button class="btnHold">保持</button>
-    <button id=shareDesktop>进入桌面共享模式</button><br>
+    <button class="btnSwitchVideoSource">共享屏幕</button>
+    <button class="btnSwitchVideo">关闭本地视频</button>
+    <input type=checkbox id=cbShareScreen>使用屏幕作为默认视频源<br>
     <p id=callInfo>呼叫提示信息</p>
     <button class="btnAnswerSecond">接听第二路，挂断第一路</button>
     <button class="btnHangupSecond">挂断第二路</button><br>
@@ -44,7 +45,7 @@
     <p id=callInfo3 style="color:red">漏接呼叫及错误相关信息</p>
     </div>
     <script>
-        let callShareDesktop = false;
+        let callShareScreen = false;
         const sdk = new RZTRtcSDK.RTCSDK('8503', '123456', '192.168.100.205', 7443, '测试8503');
         sdk.enableDebug();
         sdk.setParams({
@@ -63,9 +64,13 @@
             width: 640, height: 360, frameRate: 30,
             // 控制本地发送的视频的码率，可选
             bandWidth: 800,
-            // 分享桌面时显示分享音频选项，分享桌面默认屏蔽了这个选项
+            // 控制共享屏幕时发送的视频的宽、高和帧率，可选
+            screenWidth: 1280, screenHeight: 720, screenFrameRate: 20,
+            // 控制共享屏幕时发送的视频的码率，可选
+            screenBandWidth: 1200,
+            // 共享屏幕时显示分享音频选项，共享屏幕默认屏蔽了这个选项
             // displayShareAudioOption: true,
-            // 调用call或answer时共享桌面参数为true，但用户却最终取消了桌面分享，这时候仍然会呼出或接听（使用摄像头作为视频源）
+            // 调用call或answer时使用屏幕作为视频源，但用户却最终取消了共享屏幕，这时候仍然会呼出或接听（使用摄像头作为视频源）
             // 下面这个参数置为true后，会改变这种默认行为，会取消呼出或挂断来电
             // cancelCallWhenShareCanceled: true,
             // 自定义SIP USER AGENT
@@ -81,7 +86,7 @@
             //     iceTransportPolicy : 'relay',
             //     rtcpMuxPolicy      : 'require'
             // },
-            // 下面这两个参数，对于FreeSWITCH，可不用设置，因为回铃音在183 early media中提供了
+            // 下面这两个参数，对于FreeSWITCH，可不用设置，如果回铃音在183 early media中提供了
             // 主叫回铃音
             // ringBackUrl: 'ringback.wav',
             // 即使主叫收到了183仍然使用自己的主叫回铃音
@@ -109,21 +114,40 @@
                     break;
                 case 'remoteAnswerCall':
                     ci.textContent = remoteUser + '已接通与您的' + (callType === 'video' ? '视频' : '语音') + '通话。';
+                    if (sdk.getVideoSource() === 'camera') {
+                        document.querySelector('.btnSwitchVideoSource').textContent = '共享屏幕';
+                    } else if (sdk.getVideoSource() === 'screen') {
+                        document.querySelector('.btnSwitchVideoSource').textContent = '取消共享屏幕';
+                    }
                     break;
                 case 'remoteHangupCall':
                     ci.textContent = remoteUser + '已挂断与您的' + (callType === 'video' ? '视频' : '语音') + '通话。';
-                    document.querySelector('.btnSwitchVideo').textContent = '关闭摄像头';
+                    document.querySelector('.btnSwitchVideoSource').textContent = '共享屏幕';
+                    document.querySelector('.btnSwitchVideo').textContent = '关闭本地视频';
                     document.querySelector('.btnSwitchAudio').textContent = '静音';
                     document.querySelector('.btnHold').textContent = '保持';
                     break;
                 case 'localAnswerCall':
                     ci.textContent = '您已接通与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。';
+                    if (sdk.getVideoSource() === 'camera') {
+                        document.querySelector('.btnSwitchVideoSource').textContent = '共享屏幕';
+                    } else if (sdk.getVideoSource() === 'screen') {
+                        document.querySelector('.btnSwitchVideoSource').textContent = '取消共享屏幕';
+                    }
                     break;
                 case 'localHangupCall':
                     ci.textContent = '您已挂断与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。';
-                    document.querySelector('.btnSwitchVideo').textContent = '关闭摄像头';
+                    document.querySelector('.btnSwitchVideoSource').textContent = '共享屏幕';
+                    document.querySelector('.btnSwitchVideo').textContent = '关闭本地视频';
                     document.querySelector('.btnSwitchAudio').textContent = '静音';
                     document.querySelector('.btnHold').textContent = '保持';
+                    break;
+                case 'videoSourceChanged':
+                    if (sdk.getVideoSource() === 'camera') {
+                        document.querySelector('.btnSwitchVideoSource').textContent = '共享屏幕';
+                    } else if (sdk.getVideoSource() === 'screen') {
+                        document.querySelector('.btnSwitchVideoSource').textContent = '取消共享屏幕';
+                    }
                     break;
                 case 'callEstablishFailed':
                     ci.textContent = '呼叫建立失败，失败方为：' + originator + '，失败原因为：' + cause + '。';
@@ -175,7 +199,7 @@
             } else if (!sdk.inCall() && !sdk.hasSecondCall()) {
                 const ci = document.getElementById('callInfo');
                 ci.textContent = '视频呼叫' + document.querySelector('.phone').value + '中。';
-                sdk.call(document.querySelector('.phone').value, 'video', callShareDesktop);
+                sdk.call(document.querySelector('.phone').value, 'video', callShareScreen);
             } else {
                 const ci = document.getElementById('callInfo');
                 ci.textContent = '视频呼叫操作不允许';
@@ -186,7 +210,7 @@
                 // const ci = document.getElementById('callInfo');
                 // const { remoteUser, remoteUserId, callType } = sdk.getCallInfo();
                 // ci.textContent = '您已接通与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。';
-                sdk.answer(callShareDesktop);
+                sdk.answer(callShareScreen);
             } else {
                 const ci = document.getElementById('callInfo');
                 ci.textContent = '接听操作不允许';
@@ -204,14 +228,20 @@
             }
         };
         document.querySelector('.btnSwitchVideo').onclick = () => {
-            newCameraStatus = !sdk.getVideoStatus();
-            if (newCameraStatus)
-                document.querySelector('.btnSwitchVideo').textContent = '关闭摄像头';
+            if (!sdk.inCall() || sdk.getVideoSource() === '') {
+                return;
+            }
+            newVideoStatus = !sdk.getVideoStatus();
+            if (newVideoStatus)
+                document.querySelector('.btnSwitchVideo').textContent = '关闭本地视频';
             else
-                document.querySelector('.btnSwitchVideo').textContent = '打开摄像头';
+                document.querySelector('.btnSwitchVideo').textContent = '打开本地视频';
             sdk.switchVideo();
         };
         document.querySelector('.btnSwitchAudio').onclick = () => {
+            if (!sdk.inCall()) {
+                return;
+            }
             newVoiceStatus = !sdk.getAudioStatus();
             if (newVoiceStatus)
                 document.querySelector('.btnSwitchAudio').textContent = '静音';
@@ -220,6 +250,9 @@
             sdk.switchAudio();
         };
         document.querySelector('.btnHold').onclick = () => {
+            if (!sdk.inCall()) {
+                return;
+            }
             if (sdk.isOnHold()) {
                 sdk.unhold();
                 document.querySelector('.btnHold').textContent = '保持';
@@ -228,22 +261,18 @@
                 document.querySelector('.btnHold').textContent = '解保持';
             }
         };
-        document.querySelector('#shareDesktop').onclick = () => {
-            let shareDesktop = document.getElementById('shareDesktop');
-            if (callShareDesktop) {
-                callShareDesktop = false;
-                shareDesktop.textContent = '进入桌面共享模式';
-            } else {
-                callShareDesktop = true;
-                shareDesktop.textContent = '退出桌面共享模式';
-            }
+        document.querySelector('#cbShareScreen').onchange = () => {
+            callShareScreen = document.getElementById('cbShareScreen').checked;
+        };
+        document.querySelector('.btnSwitchVideoSource').onclick = () => {
+            sdk.switchVideoSource(sdk.getVideoSource() === 'camera' ? 'screen' : 'camera');
         };
         document.querySelector('.btnAnswerSecond').onclick = () => {
             if (sdk.hasSecondCall()) {
                 const ci2 = document.getElementById('callInfo2');
                 const { remoteUser, remoteUserId, callType } = sdk.getSecondCallInfo();
                 ci2.textContent = '您已接通与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。（第二路）';
-                sdk.answerSecondCall(callShareDesktop);
+                sdk.answerSecondCall(callShareScreen);
             } else {
                 const ci2 = document.getElementById('callInfo2');
                 ci2.textContent = '接听操作不允许（第二路）';
@@ -261,9 +290,9 @@
             }
         };
         document.body.onload = function () {
-            const url = window.location.href;
-            if (url.indexOf('http') == -1) {
-                alert('请不要在本地运行，因为ICE无法收集到地址；请在localhost或WEB服务器上运行此页面。');
+            if (!(window.location.hostname.toLowerCase() === 'localhost' || window.location.hostname.toLowerCase() === '127.0.0.1'
+                || window.location.protocol.toLowerCase() === 'https')) {
+                alert('请在localhost或有安全证书的站点部署此页面。');
                 return;
             }
         };

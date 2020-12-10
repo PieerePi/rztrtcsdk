@@ -3,11 +3,13 @@ export class RTCSDK {
     eventHandler: any;
     start(): void;
     setParams(paramSet: any): void;
-    call(phoneNo: string, callType: string, shareDesktop?: boolean): void;
-    answer(shareDesktop?: boolean): void;
-    answerSecondCall(shareDesktop?: boolean): void;
+    call(phoneNo: string, callType: string, shareScreen?: boolean): void;
+    answer(shareScreen?: boolean): void;
+    switchVideoSource(newVideoSource: string): void;
+    answerSecondCall(shareScreen?: boolean): void;
     getVideoStatus(): boolean;
     getAudioStatus(): boolean;
+    getVideoSource(): string;
     switchVideo(): void;
     switchAudio(): void;
     isOnHold(): boolean;
