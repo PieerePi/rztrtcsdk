@@ -38,6 +38,8 @@
     <button class="btnSwitchVideoSource">共享屏幕</button>
     <button class="btnSwitchVideo">关闭本地视频</button>
     <input type=checkbox id=cbShareScreen>使用屏幕作为默认视频源<br>
+    <p>下面的接听按钮，供与freeswitch-webrtc-bench测试时使用</p>
+    <button class="btnAnswerOnlyOneMediaForVideo">忽略语音接听（只有视频）</button><br>
     <p id=callInfo>呼叫提示信息</p>
     <button class="btnAnswerSecond">接听第二路，挂断第一路</button>
     <button class="btnHangupSecond">挂断第二路</button><br>
@@ -287,6 +289,17 @@
             } else {
                 const ci2 = document.getElementById('callInfo2');
                 ci2.textContent = '挂断操作不允许（第二路）';
+            }
+        };
+        document.querySelector('.btnAnswerOnlyOneMediaForVideo').onclick = () => {
+            if (sdk.canAnswer()) {
+                // const ci = document.getElementById('callInfo');
+                // const { remoteUser, remoteUserId, callType } = sdk.getCallInfo();
+                // ci.textContent = '您已接通与' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话。';
+                sdk.answerOnlyOneMedia('video', callShareScreen);
+            } else {
+                const ci = document.getElementById('callInfo');
+                ci.textContent = '接听操作不允许';
             }
         };
         document.body.onload = function () {

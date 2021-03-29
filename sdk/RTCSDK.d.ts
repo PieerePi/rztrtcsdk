@@ -5,6 +5,7 @@ export class RTCSDK {
     setParams(paramSet: any): void;
     call(phoneNo: string, callType: string, shareScreen?: boolean): void;
     answer(shareScreen?: boolean): void;
+    answerOnlyOneMedia(mediaType: string, shareScreen?: boolean): void;
     switchVideoSource(newVideoSource: string): void;
     answerSecondCall(shareScreen?: boolean): void;
     getVideoStatus(): boolean;
