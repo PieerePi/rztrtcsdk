@@ -304,7 +304,7 @@
         };
         document.body.onload = function () {
             if (!(window.location.hostname.toLowerCase() === 'localhost' || window.location.hostname.toLowerCase() === '127.0.0.1'
-                || window.location.protocol.toLowerCase() === 'https')) {
+                || window.location.protocol.toLowerCase() === 'https:')) {
                 alert('请在localhost或有安全证书的站点部署此页面。');
                 return;
             }
