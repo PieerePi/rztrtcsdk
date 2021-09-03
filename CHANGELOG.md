@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+Version 1.3.3 (released on 2021-09-03)
+---------------------------------------
+
+* 收集不到媒体地址时不会呼出或不会应答，同时抛出错误（callEstablishFailed/system/RTP Timeout）
+* 同步JsSIP 3.8.1的主要问题修复
+* sdkdemo.html中protocol is 'https:' not 'https'
+
 Version 1.3.2 (released on 2021-06-29)
 ---------------------------------------
 
