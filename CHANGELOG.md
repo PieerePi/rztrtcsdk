@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+Version 1.3.4 (released on 2021-09-06)
+---------------------------------------
+
+* 丰富呼叫建立失败callEstablishFailed事件的来源originator和原因cause
+
 Version 1.3.3 (released on 2021-09-03)
 ---------------------------------------
 
