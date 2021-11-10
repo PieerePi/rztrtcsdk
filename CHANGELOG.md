@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+Version 1.3.5 (released on 2021-11-10)
+---------------------------------------
+
+* 将一些callEstablishFailed事件，优化为remoteHangupCall事件和localHangupCall事件
+  * remoteHangupCall事件 - 远端挂断
+  * localHangupCall事件 - 呼出取消、呼入拒接和呼入不应答
+* 呼入未接通时对端挂断和呼入不应答，将产生missCall事件
+* 共享屏幕时，用户如果点击了浏览器的停止共享按钮，视频源将自动切换到摄像头
+* setParams支持参数一个一个地设置；删除参数需要将参数置为undefined
+
 Version 1.3.4 (released on 2021-09-06)
 ---------------------------------------
 
