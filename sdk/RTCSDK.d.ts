@@ -1,6 +1,7 @@
 export class RTCSDK {
     constructor(account: string, password: string, url: string, port: number, displayName?: string);
     eventHandler: any;
+    setWebSocketInfo(url: string, transportInSip?: string): void;
     start(): void;
     setParams(paramSet: any): void;
     call(phoneNo: string, callType: string, shareScreen?: boolean): void;

@@ -49,6 +49,10 @@
     <script>
         let callShareScreen = false;
         const sdk = new RZTRtcSDK.RTCSDK('8503', '123456', '192.168.100.205', 7443, '测试8503');
+        sdk.setWebSocketInfo('wss://192.168.100.205:7443', 'WSS');
+        // sdk.setWebSocketInfo('ws://192.168.100.205:5066', 'WS');
+        // sdk.setWebSocketInfo('wss://192.168.100.205/fswss/', 'WSS');
+        // sdk.setWebSocketInfo('wss://192.168.100.205/fsws/', 'WS');
         sdk.enableDebug();
         sdk.setParams({
             // 远端语音或视频标签，必须
@@ -155,7 +159,7 @@
                     ci.textContent = '呼叫建立失败，失败方为：' + originator + '，失败原因为：' + cause + '。';
                     break;
                 case 'missCall':
-                    ci3.textContent = '您有一个来自' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '通话，由于线路繁忙已被挂断。';
+                    ci3.textContent = '您有一个来自' + remoteUser + '的' + (callType === 'video' ? '视频' : '语音') + '未接通话。';
                     break;
                 case 'failed':
                     ci3.textContent = '有错误发生，错误类型：' + type + '，错误原因：' + reason + '。';

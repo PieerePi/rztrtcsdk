@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+Version 1.4.0 (released on 2022-05-18)
+---------------------------------------
+
+* 增加setWebSocketInfo接口，用于设置具体的ws/wss地址以及SIP协议中的transport信息
+  * 该接口必须先于start接口调用
+  * 如没有设置，ws/wss地址默认为wss://url:port（url和port为构造函数参数），SIP协议中的transport默认为WSS
+
 Version 1.3.5 (released on 2021-11-10)
 ---------------------------------------
 
