@@ -3,7 +3,7 @@
   "gulpname": "rztrtcsdk",
   "title": "RZTRtcSDK",
   "description": "RZT RTC SDK",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "homepage": "https://github.com/PieerePi",
   "author": "Pieere Pi <pihuibin@hotmail.com> (https://github.com/PieerePi)",
   "types": "sdk/RTCSDK.d.ts",
